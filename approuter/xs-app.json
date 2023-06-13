@@ -1,0 +1,33 @@
+{
+    "authenticationMethod": "none",
+    "routes": [
+        {
+            "source": "^/header",
+            "target": "/header",
+            "destination": "api",
+            "authenticationType":"xsuaa"
+        },
+        {
+            "source": "^/USheader",
+            "target": "/USheader",
+            "destination": "api",
+            "authenticationType":"xsuaa"
+        },
+        {
+            "source": "^/cklInstance",
+            "target": "/cklInstance",
+            "destination": "api",
+            "authenticationType":"xsuaa"
+        },
+        {
+            "source": "^/backend(.*)$",
+            "target": "$1",
+            "destination": "StagingOnPremiseBackendCOQ"
+        },
+        {
+            "source": "^/CAQ(.*)$",
+            "target": "$1",
+            "destination": "StagingOnPremiseBackendCAQ"
+        }
+    ]
+}

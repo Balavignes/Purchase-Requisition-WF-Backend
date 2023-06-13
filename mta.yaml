@@ -1,0 +1,88 @@
+_schema-version: '3.1'
+ID: PRApp
+description: Purchase_Req_Job_backend application
+version: 1.3.0
+modules:
+- name: PRApp
+  type: nodejs
+  path: app
+  requires:
+  - name: uaa_comaucloil_cap
+  - name: comaucloil_cap-connectivity
+  - name: comaucloil_cap-dest
+  - name: comaucloil_cap-db
+  - name: wm_workflow
+  provides:
+  - name: srv-api
+    properties:
+      srv-url: '${default-url}'
+- name: PRAPP-approuter
+  type: approuter.nodejs
+  path: approuter
+  requires:
+  - name: comaucloil_cap_html_repo_runtime
+  - name: uaa_comaucloil_cap
+  - name: comaucloil_cap-dest
+  - name: comaucloil_cap-connectivity
+  - name: comaucloil_cap-db
+  - name: wm_workflow
+  - name: srv-api
+    group: destinations
+    properties:
+      forwardAuthToken: true
+      name: api
+      strictSSL: false
+      timeout: 120000
+      url: ~{srv-url}
+  parameters:
+    routes: # if not defined, a default route would be auto assigned unless no-route is specified
+      - route: "p001-prapp-comau-qas.cfapps.eu10.hana.ondemand.com"
+    disk-quota: 256M
+    memory: 256M
+resources:
+- name: comaucloil_cap-db
+  type: com.sap.xs.hdi-container
+  parameters:
+    config:
+      schema: COMAUCLOIL_QAS
+    service: hana
+    service-plan: hdi-shared
+  properties:
+    hdi-container-name: ${service-name}
+    hdi-service-name: ${service-name}
+- name: comaucloil_cap_html_repo_runtime
+  type: org.cloudfoundry.managed-service
+  parameters:
+    service: html5-apps-repo
+    service-plan: app-runtime
+- name: uaa_comaucloil_cap
+  type: org.cloudfoundry.managed-service
+  parameters:
+    path: ./xs-security.json
+    service: xsuaa
+    service-name: PR-xsuaa-service
+    service-plan: application
+- name: comaucloil_cap-dest
+  type: org.cloudfoundry.managed-service
+  parameters:
+    service: destination
+    service-plan: lite
+- name: wm_workflow
+  type: org.cloudfoundry.managed-service
+  parameters:
+    service: workflow
+    service-plan: standard
+- name: comaucloil_cap-connectivity
+  type: org.cloudfoundry.managed-service
+  parameters:
+    service: connectivity
+    service-plan: lite
+parameters:
+  deploy_mode: html5-repo
+  enable-parallel-deployments: true
+build-parameters:
+  before-all:
+  - builder: custom
+    commands:
+    - npm install --production
+    - npx -p @sap/cds-dk cds build --production
